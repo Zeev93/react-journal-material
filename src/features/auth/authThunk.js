@@ -1,5 +1,9 @@
-import { singInWithGoogle } from "../../firebase/providers"
-import { checkingCredentials, login } from "./"
+import { loginWithEmailPassword, logoutFirebase, registerUserWithEmailPassword, singInWithGoogle } from "../../firebase/providers"
+import { checkingCredentials, login, logout } from "./"
+
+
+
+// Todas las tareas asynconras
 
 export const checkingAuthentication = ( email, password) => {
     return async( dispatch ) => {
@@ -18,5 +22,40 @@ export const startGoogleSignIn = () => {
 
         dispatch( login( result ) )
 
+    }
+}
+
+
+export const startCreatingUserWithEmailPassword = ({email, password, displayName}) => {
+    return async ( dispatch ) => {
+        dispatch (checkingCredentials())
+
+        const { ok, uid, photoURL, errorMessage} = await registerUserWithEmailPassword({email, password, displayName})
+        
+        if( !ok ) return dispatch ( logout(errorMessage) )
+
+        dispatch ( login({ uid, displayName, email, photoURL }))
+    }
+}
+
+export const startLoginWithEmailPassword = ({email, password}) => {
+    return async ( dispatch ) => {
+
+        dispatch(checkingCredentials())
+
+        const {ok, errorMessage, uid, displayName, photoURL} = await loginWithEmailPassword({email, password})
+
+        if(!ok) return dispatch( logout(errorMessage) ) 
+
+        dispatch(login({ok, uid, displayName, photoURL, email}))
+    }
+}
+
+
+export const startLogout = () => {
+    return async (dispatch) => {
+        await logoutFirebase()
+
+        dispatch(logout())
     }
 }
